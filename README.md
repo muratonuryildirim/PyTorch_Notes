@@ -1,2 +1,2 @@
-# pytorch_reproduce
-Here I am reproducing backbones.
+# PyTorch_Notes
+Here, I am sharing what I know about PyTorch and getting hands on experience! :slightly_smiling_face:
