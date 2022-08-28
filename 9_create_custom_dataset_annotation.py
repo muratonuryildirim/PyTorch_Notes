@@ -21,7 +21,7 @@ learning_rate = 0.001
 batch_size = 2
 num_epochs = 5
 
-# load data
+# load dataset
 class CatsAndDogsDataset(Dataset):
     def __init__(self, csv_file, root_dir, transform = None):
         self.annotations = pd.read_csv(csv_file)
@@ -42,7 +42,7 @@ class CatsAndDogsDataset(Dataset):
         return image, y_label
 
 
-dataset = CatsAndDogsDataset(csv_file='cats_dogs.csv', root_dir='cats_dogs', transform=transforms.ToTensor())
+dataset = CatsAndDogsDataset(csv_file='dataset/cats_dogs/cats_dogs.csv', root_dir='dataset/cats_dogs', transform=transforms.ToTensor())
 print(dataset[0])
 
 train_set, test_set = torch.utils.data.random_split(dataset, [8, 2])
@@ -101,7 +101,7 @@ def check_accuracy(loader, model):
 
 
 # accuracy check
-print('Checking accuracy on training data...')
+print('Checking accuracy on training dataset...')
 check_accuracy(train_loader, model)
-print('Checking accuracy on test data...')
+print('Checking accuracy on test dataset...')
 check_accuracy(test_loader, model)
