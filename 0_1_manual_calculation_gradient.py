@@ -25,7 +25,7 @@ for epoch in range(n_iters):
     # forward pass
     y_pred = forward(x)
     # loss
-    l = loss(y,y_pred)
+    l = loss(y, y_pred)
     # backward pass
     l.backward()
     # update weight(s)
