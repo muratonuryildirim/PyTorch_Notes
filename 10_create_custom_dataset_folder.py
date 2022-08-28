@@ -18,8 +18,8 @@ learning_rate = 0.001
 batch_size = 1
 num_epochs = 5
 
-train_path = 'imbalance_dataset/cats_dogs_train'
-test_path = 'imbalance_dataset/cats_dogs_test'
+train_path = 'dataset/cats_dogs/cats_dogs_imbalance/cats_dogs_train'
+test_path = 'dataset/cats_dogs/cats_dogs_imbalance/cats_dogs_test'
 
 train_dataset = torchvision.datasets.ImageFolder(root=train_path, transform=transforms.ToTensor())
 test_dataset = torchvision.datasets.ImageFolder(root=test_path, transform=transforms.ToTensor())
@@ -79,7 +79,7 @@ def check_accuracy(loader, model):
 
 
 # accuracy check
-print('Checking accuracy on training data...')
+print('Checking accuracy on training dataset...')
 check_accuracy(train_loader, model)
-print('Checking accuracy on test data...')
+print('Checking accuracy on test dataset...')
 check_accuracy(test_loader, model)
