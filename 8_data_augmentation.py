@@ -22,7 +22,7 @@ learning_rate = 0.001
 batch_size = 1
 num_epochs = 10
 
-# load data
+# load dataset
 class CatsAndDogsDataset(Dataset):
     def __init__(self, csv_file, root_dir, transform = None):
         self.annotations = pd.read_csv(csv_file)
@@ -55,7 +55,7 @@ my_transforms = transforms.Compose([transforms.ToPILImage(),
                                     transforms.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0])
                                     ])
 
-dataset = CatsAndDogsDataset(csv_file='cats_dogs.csv', root_dir='cats_dogs', transform=my_transforms)
+dataset = CatsAndDogsDataset(csv_file='dataset/cats_dogs/cats_dogs.csv', root_dir='dataset/cats_dogs', transform=my_transforms)
 
 train_set, test_set = torch.utils.data.random_split(dataset, [8, 2])
 
@@ -113,7 +113,7 @@ def check_accuracy(loader, model):
 
 
 # accuracy check
-print('Checking accuracy on training data...')
+print('Checking accuracy on training dataset...')
 check_accuracy(train_loader, model)
-print('Checking accuracy on test data...')
+print('Checking accuracy on test dataset...')
 check_accuracy(test_loader, model)
