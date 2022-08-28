@@ -6,20 +6,39 @@ from torch.utils.data import DataLoader
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 
+'''
+0. prepare dataset
+1. design model (input, output, forward pass)
+2. initiate the model
+3. define loss and optimizer
+4. train the model (loss)
+    - forward pass: compute prediction and loss
+    - backward pass: update weights
+5. test the model (accuracy)
+'''
+
 # set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# hyperparameters
-sequence_length, input_size = 28, 28  # imagine as we have 28 sequence and each has 28 observations
-num_layers = 2  # number of stacked rnn unit
-hidden_size = 256  # number of hidden states in each rnn unit
-num_classes = 10
-learning_rate = 0.001
+# 0. prepare dataset
 batch_size = 64
-num_epochs = 1
+train_dataset = datasets.MNIST(root='dataset/', train=True, transform=transforms.ToTensor(), download=True)
+test_dataset = datasets.MNIST(root='dataset/', train=False, transform=transforms.ToTensor(), download=True)
+train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
+
+data_iter = iter(train_loader)
+inputs, labels = next(data_iter)
+print(inputs.shape)
 
 
-# create a GRU
+# 1. design model (input, output, forward pass)
+sequence_length, input_size = inputs.shape[2], inputs.shape[3]  # imagine we have 28 sequence, each has 28 observations
+num_classes = len(torch.unique(labels))
+hidden_size = 256  # number of hidden states in each rnn unit
+num_layers = 2  # number of stacked rnn unit
+
+
 class BiLSTM(nn.Module):
 
     def __init__(self, input_size, hidden_size, num_layers, num_classes):
@@ -52,24 +71,19 @@ model = BiLSTM(28, 256, 2, 10)
 x = torch.randn(64, 28, 28)
 print(model(x).shape)
 
-
-# load data
-train_dataset = datasets.MNIST(root='dataset/', train=True, transform=transforms.ToTensor(), download=True)
-test_dataset = datasets.MNIST(root='dataset/', train=False, transform=transforms.ToTensor(), download=True)
-train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
-
-# initialize network
+# 2. initiate the model
 model = BiLSTM(input_size, hidden_size, num_layers, num_classes).to(device)
 
-# loss and optimizer
+# 3. define loss and optimizer
+learning_rate = 0.001
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-# train network
+# 4. train the model (loss)
+num_epochs = 1
 for epoch in range(num_epochs):
     for batch_idx, (data, targets) in enumerate(train_loader):
-        data = data.to(device=device).squeeze(1)  # get to correct shape for GRU: needs (64,28,28) instead (64,1,28,28)
+        data = data.to(device=device).squeeze(1)  # get to correct shape for RNN: needs (64,28,28) instead (64,1,28,28)
         targets = targets.to(device=device)
 
         # forward
@@ -82,12 +96,12 @@ for epoch in range(num_epochs):
         optimizer.step()
 
 
-# accuracy check
+# 5. test the model (accuracy)
 def check_accuracy(loader, model):
     if loader.dataset.train:
-        print('Checking accuracy on training data...')
+        print('Checking accuracy on training dataset...')
     else:
-        print('Checking accuracy on test data...')
+        print('Checking accuracy on test dataset...')
     num_correct = 0
     num_samples = 0
     model.eval()  # evaluation state on, train state off
