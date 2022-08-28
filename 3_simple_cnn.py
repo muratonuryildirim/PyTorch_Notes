@@ -7,51 +7,26 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 
 # set device
+from torch_functions import check_accuracy
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# hyperparameters
-in_channels = 1
-num_classes = 10
-learning_rate = 0.001
+# load dataset
 batch_size = 64
-num_epochs = 1
-load_model = False
+train_dataset = datasets.MNIST(root='dataset/', train=True, transform=transforms.ToTensor(), download=True)
+test_dataset = datasets.MNIST(root='dataset/', train=False, transform=transforms.ToTensor(), download=True)
+train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
+
+data_iter = iter(train_loader)
+inputs, labels = next(data_iter)
+
+# 1. design model (input, output, forward pass)
+n_channels = inputs.shape[1]
+input_size = inputs.shape[2] * inputs.shape[3]
+num_classes = len(torch.unique(labels))
 
 
-def load_checkpoint(checkpoint):
-    print('Checkpoint loaded.')
-    model.load_state_dict(checkpoint['state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer'])
-
-
-def save_checkpoint(state, filename='my_checkpoint.pth.tar'):
-    print('Checkpoint saved.')
-    torch.save(state, filename)
-
-
-def check_accuracy(loader, model):
-    if loader.dataset.train:
-        print('Checking accuracy on training data...')
-    else:
-        print('Checking accuracy on test data...')
-    num_correct = 0
-    num_samples = 0
-    model.eval()  # evaluation state on, train state off
-
-    with torch.no_grad():
-        for x, y in loader:
-            x = x.to(device=device)
-            y = y.to(device=device)
-
-            scores = model(x)
-            _, predictions = scores.max(1)
-            num_correct += (predictions == y).sum()
-            num_samples += predictions.size(0)
-        print(f'Got {num_correct} / {num_samples} with accuracy {float(num_correct)/float(num_samples)*100}')
-    model.train()  # evaluation state off, train state on
-
-
-# create CNN
 class CNN(nn.Module):
     def __init__(self, in_channels, num_classes):
         super(CNN, self).__init__()
@@ -86,29 +61,21 @@ class CNN(nn.Module):
 # sanity check
 model_X = CNN(1, 10)  # number of channels, num_classes
 x = torch.randn(64, 1, 28, 28)
-print(model_X(x).shape)
-
-# load data
-train_dataset = datasets.MNIST(root='dataset/', train=True, transform=transforms.ToTensor(), download=True)
-test_dataset = datasets.MNIST(root='dataset/', train=False, transform=transforms.ToTensor(), download=True)
-train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
+print(f'shape model_X: {model_X(x).shape}')
 
 # initialize network
-model = CNN(in_channels=in_channels, num_classes=num_classes).to(device)
+model = CNN(in_channels=n_channels, num_classes=num_classes).to(device)
 
 # loss and optimizer
+learning_rate = 0.001
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 # train network
+num_epochs = 2
 print(f'Training started with {num_epochs} epoch(s)')
 
-if load_model:
-    load_checkpoint(torch.load('my_checkpoint.pth.tar'))
-
 for epoch in range(num_epochs):
-
     losses = []
     for batch_idx, (data, targets) in enumerate(train_loader):
         data = data.to(device=device)
@@ -127,10 +94,6 @@ for epoch in range(num_epochs):
     mean_loss = sum(losses) / len(losses)
     print(f'Loss at epoch {epoch} was {mean_loss:.5f}')
 
-    # checkpoint
-    if epoch % 2 == 0:
-        checkpoint = {'state_dict': model.state_dict(), 'optimizer': optimizer.state_dict()}
-        save_checkpoint(checkpoint)
 
 # accuracy check
 check_accuracy(train_loader, model)
